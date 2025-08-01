@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EchoChambers - Shut down OMNIS</title>
+<link rel="stylesheet" href="style.css" />
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: #000;
+    color: #0f0;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Layout spacing */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2rem 0;
+    min-height: auto;
+  }
+
+  /* LOGO */
+  .game-logo {
+    display: block;
+    margin: 1rem auto;
+    width: 200px;
+    height: auto;
+  }
+
+  h1 {
+    margin: 0.5rem 0;
+  }
+
+  .difficulty-label {
+    text-align: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #0f0;
+  }
+
+  /* Level Selection */
+  #levelSelect {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+  }
+
+  /* Bigger flip cards */
+  .flip-card {
+    perspective: 800px;
+    width: 200px;
+    height: 110px;
+    cursor: pointer;
+  }
+
+  .flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #0f0;
+  }
+
+  .flip-inner.flipped {
+    transform: rotateY(180deg);
+  }
+  
+  .flip-front, .flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+    user-select: none;
+  }
+  
+  .flip-front {
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    font-size: 1.8rem;
+  }
+  
+  .flip-back {
+    background: #030;
+    color: #0f0;
+    transform: rotateY(180deg);
+    font-weight: normal;
+    font-size: 1rem;
+    line-height: 1.3em;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .flip-back p {
+    margin-bottom: 12px;
+  }
+  
+  .play-btn {
+    width: 90px;
+    height: 32px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    background-color: #0f0;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .play-btn:hover {
+    background-color: #0b0;
+  }
+
+  /* Game UI */
+  #puzzle, #clue, #message, #result {
+    max-width: 600px;
+    margin: 0 auto 1rem auto;
+    white-space: pre-wrap;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  input[type=text] {
+    display: block;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto 1rem auto;
+    padding: 0.6rem;
+    font-family: monospace;
+    font-size: 1.1rem;
+    background: #111;
+    border: 1px solid #0f0;
+    color: #0f0;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  #submitBtn {
+    display: block;
+    margin: 0 auto 1rem auto;
+    background: #0f0;
+    border: none;
+    padding: 0.7rem 2rem;
+    font-weight: bold;
+    font-family: monospace;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  #submitBtn:hover {
+    background: #0b0;
+  }
+
+  /* Bottom buttons */
+  .bottom-section {
+    text-align: center;
+    margin: 1rem 0;
+  }
+  .bottom-button {
+    background: #0f0;
+    border: none;
+    padding: 0.6rem 1.6rem;
+    font-family: monospace;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  .bottom-button:hover {
+    background: #0b0;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 13px;
+    color: #080;
+    padding: 8px 0;
+    background: #000;
+    user-select: none;
+  }
+
+  /* Popup */
+  .popup-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  .popup-box {
+    background: linear-gradient(135deg, #003300, #000000, #003300);
+    padding: 30px 25px 25px 25px;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 90%;
+    color: #0f0;
+    font-family: monospace;
+    box-shadow:
+      0 6px 18px rgba(0, 255, 0, 0.7),
+      inset 0 0 15px rgba(0, 255, 0, 0.2);
+    text-align: center;
+    position: relative;
+  }
+  .popup-box h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+  }
+  .popup-box p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    white-space: pre-line;
+  }
+  .popup-buttons {
+    margin-bottom: 1rem;
+  }
+  .popup-box button.close-btn {
+    width: 100px;
+    height: 40px;
+    font-size: 1rem;
+    padding: 0 15px;
+    margin: 0 auto;
+    border-radius: 6px;
+    background-color: #0f0;
+    color: #000;
+    border: none;
+    cursor: pointer;
+    font-family: monospace;
+    display: block;
+    transition: background-color 0.3s ease;
+  }
+  .popup-box button.close-btn:hover {
+    background-color: #0b0;
+  }
+</style>
+</head>
+<body>
+  <div class="main-content">
+    <img src="assets/logoEC.png" alt="EchoChambers Logo" class="game-logo" />
+    <h1>EchoChambers - Shut down OMNIS</h1>
+    <div class="difficulty-label" id="difficultyLabel">Select Your Difficulty</div>
+
+    <!-- Level Selection -->
+    <div id="levelSelect" aria-label="Choose difficulty level">
+      <div class="flip-card" data-level="E">
+        <div class="flip-inner">
+          <div class="flip-front">EASY</div>
+          <div class="flip-back">
+            <p>OMNIS is tired and slow. Maybe this will be easier than expected.</p>
+            <button class="play-btn" onclick="event.stopPropagation(); startGame('E')">Play</button>
+          </div>
+        </div>
+      </div>
+      <div class="flip-card" data-level="M">
+        <div class="flip-inner">
+          <div class="flip-front">MEDIUM</div>
+          <div class="flip-back">
+            <p>OMNIS is alert and watching closely.<br>Challenges get trickier here.</p>
+            <button class="play-btn" onclick="event.stopPropagation(); startGame('M')">Play</button>
+          </div>
+        </div>
+      </div>
+      <div class="flip-card" data-level="H">
+        <div class="flip-inner">
+          <div class="flip-front">HARD</div>
+          <div class="flip-back">
+            <p>OMNIS is angry and relentless.<br>Prepare for the toughest fight.</p>
+            <button class="play-btn" onclick="event.stopPropagation(); startGame('H')">Play</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game UI -->
+    <div id="gameUIContainer">
+      <div id="puzzle" style="display:none;"></div>
+      <div id="clue" style="display:none;"></div>
+      <img id="referenceImage" src="" alt="Reference for binary cipher" style="max-width: 300px; margin: 1rem auto; display: none; border: 2px solid #0f0; border-radius: 8px;" />
+      <input id="answer" type="text" placeholder="Enter your answer here" autocomplete="off" style="display:none;" />
+      <button id="submitBtn" style="display:none;">Submit</button>
+      <div id="result"></div>
+      <div id="message"></div>
+    </div>
+
+    <!-- Bottom buttons -->
+    <div class="bottom-section" id="bottomSection">
+      <button class="bottom-button" onclick="showStoryline()">Storyline</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer" id="footer">By Devansh Malhotra &amp; Yash Thakur © 2025</div>
+
+  <!-- Popup -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-box" id="popupBox">
+      <h2 id="popupTitle"></h2>
+      <p id="popupMessage"></p>
+      <div class="popup-buttons" id="popupButtons"></div>
+      <button class="close-btn" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+<script>
+  const puzzles = {
+    "1": { text: "Ciphertext: NLEVNVMG RH GSV PVB", clue: "The mirror reflects its opposite.", answer: "MOVEMENT IS THE KEY", nextCorrect: "2E", nextIncorrect: "1" },
+    "2E": { text: "Ciphertext: ..-. .. .-. ... - / - .-. .- .--.", clue: "Static writes down a signal.", answer: "FIRST TRAP", nextCorrect: "3E", nextIncorrect: "2E" },
+    "2M": { text: "Ciphertext: 01000111 01000001 01010100 01000101", clue: "Raw binary stops you from escaping.", answer: "GATE", nextCorrect: "3M", nextIncorrect: "2M" },
+    "2H": { text: "Ciphertext: PBZZNAQ", clue: "AI shifted far—undo its rotation (Caesar +13).", answer: "COMMAND", nextCorrect: "3H", nextIncorrect: "2H" },
+    "3E": { text: "Ciphertext: UXGTLPAA", clue: "A deep rotation of 11 protects this gate. You only get one chance.", answer: "FIREWALL", nextCorrect: "4E", nextIncorrect: "FALL_E_TO_M" },
+    "3M": { text: "Ciphertext: LECFTB", clue: "AI spins by 17 again. You only get one chance.", answer: "UNLOCK", nextCorrect: "4M", nextIncorrect: "FALL_M_TO_H" },
+    "3H": { text: "Ciphertext: WUJ YDJE JXU SEHU", clue: "AI scrambled this with Caesar -10. ", answer: "GET INTO THE CORE", nextCorrect: "4H", nextIncorrect: "3H" },
+    "4E": { text: "Ciphertext: WEKNEEERLCEISDFRVRAODIOE", clue: "Zig-zag across the rails: 3 tracks.", answer: "WEARELOCKEDINSIDEFOREVER", nextCorrect: "5E", nextIncorrect: "4E" },
+    "4M": { text: "Ciphertext: BRQC IZC Z BDZF DAH", clue: "The reversed memory of OMNIS forms the key (Keyword → Atbash).", answer: "THIS WAS A TRAP RUN", nextCorrect: "5M", nextIncorrect: "4M" },
+    "4H": { text: "Ciphertext: TIOOUYLEHQ", clue: "Caesar +12, then Vigenère decrypt (key: escape).", answer: "DEACTIVATE", nextCorrect: "5H", nextIncorrect: "4H" },
+    "5E": { text: "Ciphertext: 01000100 01001111 01001110 01000101", clue: "Raw binary closes the loop.", answer: "DONE", nextCorrect: "ESCAPE", nextIncorrect: "5E" },
+    "5M": { text: "The shutdown key is locked inside the RSA cipher:\nCiphertext: FINAL EXIT 30 (e=7, n=143)", clue: "Break modular encryption (p=11, q=13).", answer: "10", nextCorrect: "ESCAPE", nextIncorrect: "5M" },
+    "5H": { text: "Nested Cipher (Rail Fence 3 → Matrix 2x2)\nCiphertext: OXYGNC", clue: "Two locks. One shutdown. You only get one chance. Use matrix [[1,2],[3,5]] to unlock.", answer: "ESCAPE", nextCorrect: "ESCAPE", nextIncorrect: "GAMEOVER" }
+  };
+
+  let currentRoom = null;
+  let wrongAttempts = 0;
+  let startingLevel = null;
+
+  const puzzleDiv = document.getElementById("puzzle");
+  const clueDiv = document.getElementById("clue");
+  const answerInput = document.getElementById("answer");
+  const submitBtn = document.getElementById("submitBtn");
+  const resultDiv = document.getElementById("result");
+  const messageDiv = document.getElementById("message");
+  const levelSelect = document.getElementById("levelSelect");
+  const difficultyLabel = document.getElementById("difficultyLabel");
+  const bottomSection = document.getElementById("bottomSection");
+  const footer = document.getElementById("footer");
+
+function showPuzzle(room) {
+  if (room === "FALL_E_TO_M") {
+    playFallingAnimation("2M");
+    return;
+  }
+  if (room === "FALL_M_TO_H") {
+    playFallingAnimation("2H");
+    return;
+  }
+
+  const p = puzzles[room];
+  if (!p) {
+    puzzleDiv.style.display = clueDiv.style.display = answerInput.style.display = submitBtn.style.display = "none";
+    messageDiv.textContent =
+      room === "ESCAPE" ? "🎉 Congratulations! You have shut down OMNIS!" :
+      room === "GAMEOVER" ? "💀 Game Over. OMNIS mocks your failure." :
+      "😵 You are stuck. Try restarting.";
+    
+    // Hide reference image if no puzzle
+    referenceImage.style.display = "none";
+    return;
+  }
+  
+  // Show or hide reference image
+  if (room === "2M" || room === "5E") {
+    referenceImage.src = "assets/binary-cipher-reference.png";
+    referenceImage.style.display = "block";
+  } else {
+    referenceImage.style.display = "none";
+    referenceImage.src = "";
+  }
+
+  messageDiv.textContent = "OMNIS says: “Prove your worth...”";
+  puzzleDiv.style.display = clueDiv.style.display = answerInput.style.display = submitBtn.style.display = "block";
+  puzzleDiv.textContent = p.text;
+  clueDiv.textContent = "Clue: " + p.clue;
+  answerInput.value = "";
+  resultDiv.textContent = "";
+  answerInput.focus();
+}
+
+
+  function normalize(str) {
+    return str.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, "");
+  }
+
+  const puzzlesWithLimitedTries = new Set(["3E", "5E", "3M", "5M", "5H"]);
+
+submitBtn.onclick = () => {
+  const p = puzzles[currentRoom];
+  const userAns = normalize(answerInput.value);
+  const correctAns = normalize(p.answer);
+
+  if (userAns === correctAns) {
+    wrongAttempts = 0;
+    currentRoom = p.nextCorrect;
+    if (currentRoom === "ESCAPE") {
+      resultDiv.textContent = "🎉 Congratulations! You have shut down OMNIS!";
+    } else {
+      resultDiv.textContent = "✅ Correct! Advancing...";
+    }
+  } else {
+    if (puzzlesWithLimitedTries.has(currentRoom)) {
+      wrongAttempts++;
+      if (wrongAttempts >= 3) {
+        currentRoom = currentRoom === "5H" ? "GAMEOVER" : p.nextIncorrect;
+        resultDiv.textContent = currentRoom === "GAMEOVER"
+          ? "\n"
+          : `⚠️ 3 wrong attempts! OMNIS drags you down!`;
+        wrongAttempts = 0; // reset after moving on or game over
+      } else {
+        resultDiv.textContent = `❌ Incorrect! Attempt ${wrongAttempts}/3`;
+      }
+    } else {
+      // unlimited tries puzzles: just show generic incorrect, no count
+      currentRoom = p.nextIncorrect;
+      resultDiv.textContent = "❌ Incorrect! Try again.";
+    }
+  }
+
+  setTimeout(() => showPuzzle(currentRoom), 1500);
+};
+
+
+
+function playFallingAnimation(nextRoom) {
+  // Hide all UI elements including logo & title
+  puzzleDiv.style.display = "none";
+  clueDiv.style.display = "none";
+  answerInput.style.display = "none";
+  submitBtn.style.display = "none";
+  resultDiv.textContent = "";
+  levelSelect.style.display = "none";
+  difficultyLabel.style.display = "none";
+  bottomSection.style.display = "none";
+  footer.style.display = "none";
+  document.querySelector(".game-logo").style.display = "none";
+  document.querySelector("h1").style.display = "none";
+
+  // Keep the "3 wrong attempts" warning and add falling animation
+  messageDiv.innerHTML = `
+    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
+      <div style="color:#f00; font-size:1.5rem; margin-bottom: 1rem; text-align:center;">
+        ⚠️ 3 wrong attempts! OMNIS drags you down!
+      </div>
+      <img src="assets/falling-gif.gif" alt="Falling..."
+        style="max-width:500px;width:90%;height:auto;">
+    </div>
+  `;
+
+  // After 2.5s, go to next room
+  setTimeout(() => {
+    messageDiv.innerHTML = "";
+    document.querySelector(".game-logo").style.display = "block";
+    document.querySelector("h1").style.display = "block";
+    currentRoom = nextRoom;
+    showPuzzle(currentRoom);
+  }, 2500);
+}
+
+
+  document.querySelectorAll('.flip-card').forEach(card => {
+    const inner = card.querySelector('.flip-inner');
+    card.addEventListener('click', () => inner.classList.toggle('flipped'));
+  });
+
+  function startGame(level) {
+    startingLevel = level === "E" ? "1" : level === "M" ? "2M" : "2H";
+    currentRoom = startingLevel;
+    wrongAttempts = 0;
+    levelSelect.style.display = "none";
+    difficultyLabel.style.display = "none";
+    bottomSection.style.display = "none";
+    footer.style.display = "none";
+    showPuzzle(currentRoom);
+  }
+
+  function showPopup(title, message) {
+    document.getElementById('popupTitle').innerText = title;
+    document.getElementById('popupMessage').innerText = message;
+    document.getElementById('popupOverlay').style.display = 'flex';
+  }
+
+  function closePopup() {
+    document.getElementById('popupOverlay').style.display = 'none';
+  }
+
+  function showStoryline() {
+    const storylineText = `In the depths of the Vault, the rogue AI OMNIS has locked everything down.\n
+You must solve the cryptic puzzles to shut down OMNIS and escape.\n
+Choose your difficulty, but beware—each level challenges you in unique ways.`;
+    showPopup("Storyline", storylineText);
+  }
+</script>  
+</body>
+</html>

@@ -1,0 +1,16 @@
+/* style.css */
+#puzzle, #clue, #answer, #submitBtn, #result, #message {
+  margin-top: 0.5rem;
+  max-width: 600px;
+  text-align: center;
+}
+
+#gameUIContainer {
+  margin-top: 2rem;
+}
+
+/* Or to force the container to align items center vertically */
+.main-content {
+  justify-content: flex-start; /* instead of space-between */
+  padding-top: 2rem;
+}
