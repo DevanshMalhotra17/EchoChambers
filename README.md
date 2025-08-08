@@ -36,5 +36,5 @@ Devansh helped build the core game mechanics, puzzles and animations, as well as
 ### Yash Ryan Thakur — Co-Creator & Puzzle Designer ([@yashryanthakur-stack](https://github.com/yashryanthakur-stack))
 Yash contributed to puzzle design, cipher clues, and storyline development, making sure each challenge fits the theme and difficulty progression. Together, they crafted a mysterious world where logic meets suspense.
 
-Project Background 🎓
+## Project Background 🎓
 This game was made as our final project for the Discrete Math course, where cryptography puzzles played a central role in our learning. It’s the full initial version built collaboratively, ready for testing, feedback, and future improvements.
